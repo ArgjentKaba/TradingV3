@@ -34,8 +34,8 @@ class RollingStats:
             tr = high - low
         else:
             tr = max(
-                high - low, 
-                abs(high - self.prev_close_for_tr), 
+                high - low,
+                abs(high - self.prev_close_for_tr),
                 abs(low - self.prev_close_for_tr),
             )
         self.trs.append(tr)
