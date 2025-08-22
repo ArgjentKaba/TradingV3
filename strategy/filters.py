@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 from collections import deque
 
+
 @dataclass
 class FilterThresholds:
     oi_long_min: Optional[float] = None
@@ -16,6 +17,7 @@ class FilterThresholds:
     atr14_pct_max: float = 100.0
     liq_percentile_min: float = 0.0
     spread_bps_max: float = 1e9
+
 
 class RollingStats:
 
