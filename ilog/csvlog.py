@@ -15,6 +15,7 @@ KEY_ALIASES = {
     "risk_perc": "risk_perc_run",
 }
 
+
 def _normalize_row(row: Dict) -> Dict:
     r = dict(row)
     for old, new in KEY_ALIASES.items():
@@ -27,6 +28,7 @@ def _normalize_row(row: Dict) -> Dict:
         if k not in out:
             out[k] = "" if v is None else str(v)
     return out
+
 
 def write_trades(trades: List[Dict], path: str, use_risk_fields: bool = True):
     os.makedirs(os.path.dirname(path), exist_ok=True)
