@@ -57,6 +57,7 @@ class RollingStats:
         pc = self.prev_close or 1.0
         return (atr / pc) * 100.0
 
+
 def sign(x: float) -> int:
     return 0 if x == 0 else (1 if x > 0 else -1)
 
