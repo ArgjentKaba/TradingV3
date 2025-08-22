@@ -6,8 +6,8 @@ ORDERED_FIELDS = [
     "time_entry","time_exit","symbol","side","entry","exit","pnl_pct","reason",
     "profile_run","risk_perc_run","R_multiple","account_pnl_pct","account_pnl_usd",
     "equity_before","equity_after","qty","notional_usd",
-    "time_limit_applied","time_limit_minutes","unrealized_pct_at_90m","be_armed",
-    "leg","leg_fraction"
+    "time_limit_applied", "time_limit_minutes", "unrealized_pct_at_90m", "be_armed",
+    "leg", "leg_fraction"
 ]
 
 KEY_ALIASES = {
