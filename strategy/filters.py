@@ -54,10 +54,17 @@ class RollingStats:
         return (atr / pc) * 100.0
 
 def sign(x: float) -> int:
-    return 0 if x==0 else (1 if x>0 else -1)
+    return 0 if x == 0 else (1 if x > 0 else -1)
 
-def passes_gate(side:str, mom_1m_pct: float, vol_z: float, atr_pct: float,
-                oi_delta_5m_pct: Optional[float], thresholds: FilterThresholds) -> bool:
+
+def passes_gate(
+    side: str,
+    mom_1m_pct: float,
+    vol_z: float,
+    atr_pct: float,
+    oi_delta_5m_pct: Optional[float],
+    thresholds: FilterThresholds,
+) -> bool:
     if side == "LONG":
         if mom_1m_pct < thresholds.mom_long_min:
             return False
@@ -70,21 +77,34 @@ def passes_gate(side:str, mom_1m_pct: float, vol_z: float, atr_pct: float,
         if thresholds.oi_short_max is not None and oi_delta_5m_pct is not None:
             if oi_delta_5m_pct > thresholds.oi_short_max:
                 return False
+
     if vol_z < thresholds.vol_z_min:
         return False
     if atr_pct > thresholds.atr14_pct_max:
         return False
     return True
 
-def divergence_ok(mom_1m_pct: float, oi_delta_5m_pct: Optional[float], thresholds: FilterThresholds) -> bool:
+
+def divergence_ok(
+    mom_1m_pct: float,
+    oi_delta_5m_pct: Optional[float],
+    thresholds: FilterThresholds,
+) -> bool:
     if thresholds.allow_divergence:
         if oi_delta_5m_pct is None:
             return False
-        return abs(oi_delta_5m_pct) >= (thresholds.div_min_abs_oi or 0.0) and abs(mom_1m_pct) <= (thresholds.div_max_abs_mom or 0.0)
+        return (
+            abs(oi_delta_5m_pct) >= (thresholds.div_min_abs_oi or 0.0)
+            and abs(mom_1m_pct) <= (thresholds.div_max_abs_mom or 0.0)
+        )
     else:
         if oi_delta_5m_pct is None:
             return True
-        return sign(mom_1m_pct) == sign(oi_delta_5m_pct) or mom_1m_pct == 0.0
+        return (
+            sign(mom_1m_pct) == sign(oi_delta_5m_pct)
+            or mom_1m_pct == 0.0
+        )
+
 
 def ffill_step(self):
     """Advance one synthetic minute using last close; volume=0."""
