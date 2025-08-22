@@ -19,7 +19,7 @@ class FilterThresholds:
 
 class RollingStats:
 
-    def __init__(self, vol_window:int=20):
+    def __init__(self, vol_window: int = 20):
         self.vol_window = vol_window
         self.vols = deque(maxlen=vol_window)
         self.prev_close = None
@@ -118,4 +118,3 @@ def ffill_step(self):
     close = self.prev_close
     # high=low=close; no volume -> stabilizes ATR/vol z-score without creating real bars
     self.update(close, close, close, 0.0)
-    
