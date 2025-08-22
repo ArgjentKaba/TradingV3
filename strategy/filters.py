@@ -33,7 +33,11 @@ class RollingStats:
         if self.prev_close_for_tr is None:
             tr = high - low
         else:
-            tr = max(high - low, abs(high - self.prev_close_for_tr), abs(low - self.prev_close_for_tr))
+            tr = max(
+                high - low, 
+                abs(high - self.prev_close_for_tr), 
+                abs(low - self.prev_close_for_tr),
+            )
         self.trs.append(tr)
         self.prev_high, self.prev_low, self.prev_close_for_tr = high, low, close
         self.prev_close = close
@@ -113,3 +117,4 @@ def ffill_step(self):
     close = self.prev_close
     # high=low=close; no volume -> stabilizes ATR/vol z-score without creating real bars
     self.update(close, close, close, 0.0)
+    
