@@ -1,13 +1,20 @@
 from datetime import datetime, timedelta
 
+
 class Governor:
-    def __init__(self, profile: str = "SAFE", trades_min_per_day: int = 2, trades_max_per_day: int = 4, cooldown_minutes: int = 30):
+    def __init__(
+        self,
+        profile: str = "SAFE",
+        trades_min_per_day: int = 2,
+        trades_max_per_day: int = 4,
+        cooldown_minutes: int = 30,
+    ):
         self.profile = profile.upper()
         self.trades_min = trades_min_per_day
         self.trades_max = trades_max_per_day
         self.cooldown = timedelta(minutes=cooldown_minutes)
-        self._count_by_day = {}
-        self._last_exit_time_by_symbol = {}
+        self._count_by_day: dict[str, int] = {}
+        self._last_exit_time_by_symbol: dict[str, datetime] = {}
 
     def _day_key(self, t: datetime) -> str:
         return t.strftime("%Y-%m-%d")
@@ -17,14 +24,16 @@ class Governor:
         count = self._count_by_day.get(k, 0)
         if count >= self.trades_max:
             return False
+
         last = self._last_exit_time_by_symbol.get(symbol)
-        if last is not None and t - last < self.cooldown:
+        if last is not None and (t - last) < self.cooldown:
             return False
+
         return True
 
-    def register_trade(self, t: datetime):
+    def register_trade(self, t: datetime) -> None:
         k = self._day_key(t)
         self._count_by_day[k] = self._count_by_day.get(k, 0) + 1
 
-    def register_exit(self, t: datetime, symbol: str):
+    def register_exit(self, t: datetime, symbol: str) -> None:
         self._last_exit_time_by_symbol[symbol] = t
