@@ -1,0 +1,46 @@
+﻿name: Coverage
+on:
+  push:
+    branches: [ "dev", "main" ]
+  pull_request:
+    branches: [ "dev", "main" ]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements-dev.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+      - name: Install deps
+        run: |
+          pip install -r requirements-dev.txt
+          pip install -e .
+      - name: PyTest with Coverage
+        run: |
+          pytest -q --maxfail=1 --disable-warnings `
+            --cov=strategy --cov=exec --cov=core --cov=ilog `
+            --cov-branch --cov-report=term-missing --cov-report=xml
+      - name: Enforce coverage threshold (60%)
+        run: |
+          python - << 'PY'
+import sys, xml.etree.ElementTree as ET
+root = ET.parse('coverage.xml').getroot()
+rate = float(root.get('line-rate', 0.0)) * 100.0
+threshold = 60.0
+print(f"Total coverage: {rate:.1f}% (threshold {threshold}%)")
+sys.exit(0 if rate >= threshold else 1)
+PY
+      - name: Upload coverage.xml
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
