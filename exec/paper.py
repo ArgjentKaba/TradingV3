@@ -1,6 +1,14 @@
 class PaperExec:
-    def __init__(self, symbol: str, profile: str = "SAFE", start_equity: float = 10000.0, risk_override: float | None = None,
-                 sl_pct: float = 6.0, tp1_pct: float = 8.0, tp2_pct: float = 12.0):
+    def __init__(
+        self,
+        symbol: str,
+        profile: str = "SAFE",
+        start_equity: float = 10000.0,
+        risk_override: float | None = None,
+        sl_pct: float = 6.0,
+        tp1_pct: float = 8.0,
+        tp2_pct: float = 12.0,
+    ):
         self.symbol = symbol
         self.profile = profile.upper()
         self.equity = start_equity
@@ -12,10 +20,21 @@ class PaperExec:
         self.trades = []
 
     def _current_risk(self) -> float:
-        return float(self.risk_override if self.risk_override is not None else self.risk_map.get(self.profile, 0.005))
+        base = self.risk_map.get(self.profile, 0.005)
+        return float(self.risk_override if self.risk_override is not None else base)
 
-    def execute_trade(self, side: str, entry_price: float, exit_price: float, time_entry, time_exit, reason: str,
-                      time_limit_applied: bool=False, unrealized_pct_at_90m: float|None=None, be_armed: bool=False):
+    def execute_trade(
+        self,
+        side: str,
+        entry_price: float,
+        exit_price: float,
+        time_entry,
+        time_exit,
+        reason: str,
+        time_limit_applied: bool = False,
+        unrealized_pct_at_90m: float | None = None,
+        be_armed: bool = False,
+    ):
         equity_before = self.equity
         risk_perc = self._current_risk()
         notional_total = equity_before * risk_perc / (self.sl_pct / 100.0)
@@ -24,16 +43,16 @@ class PaperExec:
         reason_lower = reason.lower()
         if "tp1" in reason_lower:
             frac = 0.33
-            leg  = "TP1"
+            leg = "TP1"
         elif "tp2" in reason_lower:
             frac = 0.67
-            leg  = "TP2"
+            leg = "TP2"
         elif "stopbe" in reason_lower or "timemax_90m_be" in reason_lower:
             frac = 0.67 if "stopbe" in reason_lower else 1.0
-            leg  = "BE" if "stopbe" in reason_lower else "FULL"
+            leg = "BE" if "stopbe" in reason_lower else "FULL"
         else:
             frac = 1.0
-            leg  = "FULL"
+            leg = "FULL"
 
         notional = notional_total * frac
         qty = qty_total * frac
