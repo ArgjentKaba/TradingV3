@@ -15,7 +15,7 @@ class PaperExec:
         return float(self.risk_override if self.risk_override is not None else self.risk_map.get(self.profile, 0.005))
 
     def execute_trade(self, side: str, entry_price: float, exit_price: float, time_entry, time_exit, reason: str,
-                      time_limit_applied: bool=False, unrealized_pct_at_90m: float|None=None, be_armed: bool=False):
+                      time_limit_applied: bool = False, unrealized_pct_at_90m: float|None = None, be_armed: bool = False):
         equity_before = self.equity
         risk_perc = self._current_risk()
         notional_total = equity_before * risk_perc / (self.sl_pct / 100.0)
@@ -24,7 +24,7 @@ class PaperExec:
         reason_lower = reason.lower()
         if "tp1" in reason_lower:
             frac = 0.33
-            leg  = "TP1"
+            leg = "TP1"
         elif "tp2" in reason_lower:
             frac = 0.67
             leg = "TP2"
