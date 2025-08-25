@@ -1,4 +1,4 @@
-﻿[build-system]
+[build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
@@ -6,9 +6,9 @@ build-backend = "setuptools.build_meta"
 name = "tradingv3-alerts"
 version = "0.1.0"
 description = "Crypto alerts v2 backtester bundle"
-requires-python = ">=3.11"
 readme = "README.md"
-license = {text = "MIT"}
+requires-python = ">=3.11"
+license = { text = "MIT" }
 
 [tool.setuptools]
 packages = ["core", "strategy", "exec", "ilog"]
