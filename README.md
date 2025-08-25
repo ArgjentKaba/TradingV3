@@ -39,3 +39,6 @@ Small gap handling: ? 2 min gaps are ffilled into indicators (no synthetic bars/
 ### Install dev tools
 - pip install -r requirements-dev.txt
 - pre-commit install
+
+
+Rule-check: CI Test
