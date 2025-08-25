@@ -1,3 +1,18 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tradingv3-alerts"
+version = "0.1.0"
+description = "Crypto alerts v2 backtester bundle"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+[tool.setuptools]
+packages = ["core", "strategy", "exec", "ilog"]
+
 [tool.black]
 line-length = 120
 target-version = ["py311"]
