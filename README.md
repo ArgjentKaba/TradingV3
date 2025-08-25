@@ -31,3 +31,7 @@ runs/trades_all_variants.csv
 CSV-Schema v2 includes: profile_run,risk_perc_run,R_multiple,account_pnl_*, equity_*,qty,notional_usd,time_limit_applied,unrealized_pct_at_90m,be_armed,leg,leg_fraction.
 
 Small gap handling: ? 2 min gaps are ffilled into indicators (no synthetic bars/entries).
+
+## Dev setup
+- Activate venv: .\.venv\Scripts\Activate.ps1
+- Run: python app.py
