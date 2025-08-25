@@ -1,0 +1,17 @@
+[run]
+branch = True
+source =
+    strategy
+    exec
+    core
+    ilog
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    pass
+    raise NotImplementedError
+precision = 1
+show_missing = True
+skip_covered = False
