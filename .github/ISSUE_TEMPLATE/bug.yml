@@ -1,0 +1,23 @@
+name: Bug
+description: Fehler melden
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: desc
+    attributes:
+      label: Beschreibung
+      description: Was ist passiert?
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduktion
+      description: Schritte zum Reproduzieren
+  - type: textarea
+    id: expected
+    attributes:
+      label: Erwartetes Verhalten
+  - type: textarea
+    id: context
+    attributes:
+      label: Kontext/Logs/Screenshots

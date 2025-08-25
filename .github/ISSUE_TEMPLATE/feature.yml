@@ -1,0 +1,19 @@
+name: Feature
+description: Neue Funktion vorschlagen
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: Warum ist das wichtig?
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Vorschlag
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Akzeptanzkriterien
+      description: Wann gilt es als erledigt?
