@@ -1,6 +1,14 @@
 class PaperExec:
-    def __init__(self, symbol: str, profile: str = "SAFE", start_equity: float = 10000.0, risk_override: float | None = None,
-                 sl_pct: float = 6.0, tp1_pct: float = 8.0, tp2_pct: float = 12.0):
+    def __init__(
+        self,
+        symbol: str,
+        profile: str = "SAFE",
+        start_equity: float = 10000.0,
+        risk_override: float | None = None,
+        sl_pct: float = 6.0,
+        tp1_pct: float = 8.0,
+        tp2_pct: float = 12.0,
+    ):
         self.symbol = symbol
         self.profile = profile.upper()
         self.equity = start_equity
@@ -12,10 +20,21 @@ class PaperExec:
         self.trades = []
 
     def _current_risk(self) -> float:
-        return float(self.risk_override if self.risk_override is not None else self.risk_map.get(self.profile, 0.005))
+        base = self.risk_map.get(self.profile, 0.005)
+        return float(self.risk_override if self.risk_override is not None else base)
 
-    def execute_trade(self, side: str, entry_price: float, exit_price: float, time_entry, time_exit, reason: str,
-                      time_limit_applied: bool = False, unrealized_pct_at_90m: float|None = None, be_armed: bool = False):
+    def execute_trade(
+        self,
+        side: str,
+        entry_price: float,
+        exit_price: float,
+        time_entry,
+        time_exit,
+        reason: str,
+        time_limit_applied: bool = False,
+        unrealized_pct_at_90m: float | None = None,
+        be_armed: bool = False,
+    ):
         equity_before = self.equity
         risk_perc = self._current_risk()
         notional_total = equity_before * risk_perc / (self.sl_pct / 100.0)
@@ -66,7 +85,9 @@ class PaperExec:
             "notional_usd": f"{notional:.2f}",
             "time_limit_applied": str(bool(time_limit_applied)),
             "time_limit_minutes": "90",
-            "unrealized_pct_at_90m": (f"{unrealized_pct_at_90m:.4f}" if unrealized_pct_at_90m is not None else ""),
+            "unrealized_pct_at_90m": (
+                f"{unrealized_pct_at_90m:.4f}" if unrealized_pct_at_90m is not None else ""
+            ),
             "be_armed": str(bool(be_armed)),
             "leg": leg,
             "leg_fraction": f"{frac:.2f}",
