@@ -85,9 +85,7 @@ class PaperExec:
             "notional_usd": f"{notional:.2f}",
             "time_limit_applied": str(bool(time_limit_applied)),
             "time_limit_minutes": "90",
-            "unrealized_pct_at_90m": (
-                f"{unrealized_pct_at_90m:.4f}" if unrealized_pct_at_90m is not None else ""
-            ),
+            "unrealized_pct_at_90m": (f"{unrealized_pct_at_90m:.4f}" if unrealized_pct_at_90m is not None else ""),
             "be_armed": str(bool(be_armed)),
             "leg": leg,
             "leg_fraction": f"{frac:.2f}",

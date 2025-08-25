@@ -1,7 +1,8 @@
 from __future__ import annotations
+
+from collections import deque
 from dataclasses import dataclass
 from typing import Optional
-from collections import deque
 
 
 @dataclass
@@ -48,6 +49,7 @@ class RollingStats:
         if len(self.vols) < 2:
             return 0.0
         import statistics as st
+
         m = st.mean(self.vols)
         sd = st.pstdev(self.vols) or 1e-9
         return (self.vols[-1] - m) / sd
@@ -100,17 +102,13 @@ def divergence_ok(
     if thresholds.allow_divergence:
         if oi_delta_5m_pct is None:
             return False
-        return (
-            abs(oi_delta_5m_pct) >= (thresholds.div_min_abs_oi or 0.0)
-            and abs(mom_1m_pct) <= (thresholds.div_max_abs_mom or 0.0)
+        return abs(oi_delta_5m_pct) >= (thresholds.div_min_abs_oi or 0.0) and abs(mom_1m_pct) <= (
+            thresholds.div_max_abs_mom or 0.0
         )
     else:
         if oi_delta_5m_pct is None:
             return True
-        return (
-            sign(mom_1m_pct) == sign(oi_delta_5m_pct)
-            or mom_1m_pct == 0.0
-        )
+        return sign(mom_1m_pct) == sign(oi_delta_5m_pct) or mom_1m_pct == 0.0
 
 
 def ffill_step(self):

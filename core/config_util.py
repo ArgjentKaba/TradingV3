@@ -1,5 +1,6 @@
 import json
 
+
 def _load_text(path: str):
     try:
         with open(path, 'r', encoding='utf-8') as f:
@@ -7,15 +8,18 @@ def _load_text(path: str):
     except Exception:
         return None
 
+
 def _try_json(txt: str):
     try:
         return json.loads(txt)
     except Exception:
         return None
 
+
 def _try_yaml(txt: str):
     try:
         import yaml  # type: ignore
+
         return yaml.safe_load(txt)
     except Exception:
         return None
