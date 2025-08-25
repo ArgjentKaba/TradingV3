@@ -1,5 +1,6 @@
 from __future__ import annotations
-import csv, os
+import csv
+import os
 from typing import List, Dict
 
 ORDERED_FIELDS = [

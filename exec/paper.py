@@ -27,13 +27,13 @@ class PaperExec:
             leg  = "TP1"
         elif "tp2" in reason_lower:
             frac = 0.67
-            leg  = "TP2"
+            leg = "TP2"
         elif "stopbe" in reason_lower or "timemax_90m_be" in reason_lower:
             frac = 0.67 if "stopbe" in reason_lower else 1.0
-            leg  = "BE" if "stopbe" in reason_lower else "FULL"
+            leg = "BE" if "stopbe" in reason_lower else "FULL"
         else:
             frac = 1.0
-            leg  = "FULL"
+            leg = "FULL"
 
         notional = notional_total * frac
         qty = qty_total * frac
