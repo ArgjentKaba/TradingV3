@@ -10,7 +10,7 @@ repos:
       - id: isort
 
   - repo: https://github.com/pycqa/flake8
-    rev: 7.1.0
+    rev: 7.1.1
     hooks:
       - id: flake8
 
@@ -21,3 +21,12 @@ repos:
       - id: trailing-whitespace
       - id: mixed-line-ending
       - id: check-merge-conflict
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest (pre-push)
+        entry: pytest -q
+        language: system
+        pass_filenames: false
+        stages: [push]
