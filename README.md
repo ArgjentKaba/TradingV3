@@ -1,157 +1,33 @@
-﻿[![CI](https://github.com/ArgjentKaba/TradingV3/actions/workflows/ci.yml/badge.svg)](https://github.com/ArgjentKaba/TradingV3/actions/workflows/ci.yml)
+[![CI](https://github.com/ArgjentKaba/TradingV3/actions/workflows/ci.yml/badge.svg)](https://github.com/ArgjentKaba/TradingV3/actions/workflows/ci.yml)
 
 # crypto-alerts (v2 fixpack)
 
+This bundle contains the v2 backtester with:
+- SAFE/FAST filter-gate (no BTC confirmation)
+- Exit B (SL 6%, TP1 8%/33% -> BE, TP2 12%/67%)
+- 90-minute time-exit (profit or BE)
+- 4 variants (risk 0.5/1.0 ? safe/fast)
+- Single Source of Truth configs
+- CSV schema v2 (incl. time-exit fields and leg markers)
+- Variants loaded from `config/runtime.yaml`
+- Gap handling per spec
 
-
-Dieses Bundle enthält die **Version 2** des Backtesters mit:
-
-- SAFE/FAST Filter-Gate (ohne BTC-Bestätigung)
-
-- Exit B (SL 6%, TP1 8%/33% → BE, TP2 12%/67%)
-
-- 90-Minuten Zeit-Exit (Profit oder Break-Even)
-
-- 4 Varianten (Risk 0.5 / 1.0 × Safe / Fast)
-
-- Single Source of Truth (Configs)
-
-- CSV-Schema v2 (inkl. Zeit-Exit-Felder und Legs)
-
-- Gap-Handling nach Spezifikation
-
-
-
----
-
-
-
-## ✅ Voraussetzungen
-
-- Python **≥ 3.10**
-
-- Abhängigkeiten aus `requirements.txt` installiert
-
-- Daten liegen lokal als **1m-OHLCV CSV** je Symbol (UTC, monotone Zeit)
-
-
-
-### Installation
-
+## Run
 ```bash
-
-python -m venv .venv
-
-# Linux/macOS
-
-source .venv/bin/activate
-
-# Windows
-
-# .venv\\Scripts\\activate
-
-pip install -r requirements.txt
-
-```
-
-
-
-### Konfiguration (Single Source of Truth)
-
-- `config/filters.yaml` – SAFE/FAST-Schwellen (Momentum/Vol-zScore/ATR/Divergenz/OI)
-
-- `config/thresholds.yaml` – SL/TP/Time-Exit & Risiko 0.5/1.0
-
-- `config/runtime.yaml` – `days_back`, Pfade, Loglevel, `universe_file`
-
-- `symbols.txt` – gehandeltes Universum, ein Symbol pro Zeile
-
-
-
-> OI wird genutzt, **wenn OI-CSV vorhanden**; sonst laufen die Filter ohne OI weiter (siehe Entwickler-Konzept).
-
-
-
----
-
-
-
-## 🚀 Run
-
-```bash
-
 python app.py
+Outputs (v2)
+After python app.py, you get:
 
-```
+runs/trades_SAFE_005bp.csv
 
+runs/trades_SAFE_010bp.csv
 
+runs/trades_FAST_005bp.csv
 
-### Outputs (v2)
+runs/trades_FAST_010bp.csv
 
-Nach `python app.py` entstehen automatisch:
+runs/trades_all_variants.csv
 
-- `runs/trades_SAFE_005bp.csv`
+CSV-Schema v2 includes: profile_run,risk_perc_run,R_multiple,account_pnl_*, equity_*,qty,notional_usd,time_limit_applied,unrealized_pct_at_90m,be_armed,leg,leg_fraction.
 
-- `runs/trades_SAFE_010bp.csv`
-
-- `runs/trades_FAST_005bp.csv`
-
-- `runs/trades_FAST_010bp.csv`
-
-- `runs/trades_all_variants.csv`
-
-
-
-**CSV-Schema v2** enthält u. a.:
-
-`profile_run, risk_perc_run, R_multiple, account_pnl_*, equity_*, qty, notional_usd, time_limit_applied, unrealized_pct_at_90m, be_armed, leg, leg_fraction`.
-
-
-
-- Small gap handling: ≤ 2 min Gaps werden ffilled in Indikatoren (keine synthetischen Bars/Entries).
-
-
-
----
-
-
-
-## 📖 Dokumentation & Konzepte
-
-- [Masterplan (Strategie-Evolution, v1 → v5)](docs/MASTERPLAN.md)
-
-- [Entwickler-Konzept (technische Umsetzung)](docs/KONZEPT_ENTWICKLER.md)
-
-- [Trader-Konzept (Anwendung & Auswertung)](docs/KONZEPT_TRADER.md)
-
-
-
----
-
-
-
-## 🔧 Troubleshooting (Kurz)
-
-- **Keine Trades?** Prüfe `symbols.txt`, Daten-Zeitraum (`days_back`), Filter (SAFE/FAST ggf. zu streng).
-
-- **Zeit-Exit greift nie?** Stelle sicher: UTC-Zeiten, `unrealized_pct_at_90m` wird berechnet und geloggt.
-
-- **CSV leer/Schema anders?** `log_schema: v2` in deiner Config und Datenfelder prüfen.
-
-
-
----
-
-
-
-## 🔮 Nächste Schritte
-
-- v3: ML-Modul zur Signalbewertung (E[R], p(SL), Walk-Forward CV)
-
-- v4: Live-Handel mit Exchange-Anbindung, OCO-Orders, Fees/Slippage
-
-- v5: Monitoring (Dashboard, Alerts, Reports)
-
-
-
-CI: test run
+Small gap handling: ? 2 min gaps are ffilled into indicators (no synthetic bars/entries).
