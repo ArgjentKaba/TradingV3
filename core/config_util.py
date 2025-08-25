@@ -20,6 +20,7 @@ def _try_yaml(txt: str):
     except Exception:
         return None
 
+
 def load_config(path: str, default: dict) -> dict:
     txt = _load_text(path)
     if not txt:
