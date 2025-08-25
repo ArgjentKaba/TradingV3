@@ -1,1 +1,13 @@
+# Enforce LF line endings for all text files
 * text=auto eol=lf
+
+# Treat common binaries as binary (no EOL normalization)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.svg binary
+*.zip binary
+*.gz binary
+*.pdf binary
+*.ipynb binary

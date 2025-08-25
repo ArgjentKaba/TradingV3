@@ -1,0 +1,17 @@
+﻿version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Nur Dev-Tools hochziehen (requirements-dev.txt)
+    allow:
+      - dependency-type: "development"
+    ignore:
+      - dependency-name: "flake8"
+        versions: [">=7.1.1"]  # wir haben 7.1.1 gepinnt
