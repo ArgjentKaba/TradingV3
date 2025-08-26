@@ -1,6 +1,7 @@
 ﻿from pathlib import Path
 
-from ilog.csvlog import ORDERED_FIELDS, _normalize_row, csvlog, write_trades
+import ilog.csvlog as csvlog
+from ilog.csvlog import ORDERED_FIELDS, _normalize_row, write_trades
 
 
 def test_normalize_row_adds_missing_fields():
