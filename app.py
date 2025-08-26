@@ -186,7 +186,8 @@ def backtest_variant(bars: List[Bar], symbol: str, profile: str, risk_perc: floa
     locked_after_big_gap = False
 
     for i in range(1, len(bars)):
-        b_prev, b = bars[i - 1], b = bars[i - 1], bars[i]
+        # BUGFIX: korrekte Zuordnung
+        b_prev, b = bars[i - 1], bars[i]
         if cutoff and b.t < cutoff:
             rs.update(b.high, b.low, b.close, b.volume)
             continue
@@ -335,32 +336,37 @@ def backtest_variant(bars: List[Bar], symbol: str, profile: str, risk_perc: floa
 
 def main():
     symbols = load_symbols(CFG_RUN.get("universe_file", "symbols.txt"))
-    out_dir = CFG_RUN.get("output", {}).get("dir", "runs")
+    out_cfg = CFG_RUN.get("output", {}) or {}
+    out_dir = out_cfg.get("dir", "runs")
     os.makedirs(out_dir, exist_ok=True)
 
-    all_trades = []
+    all_trades: List[dict] = []
+    write_csv = out_cfg.get("write_csv", True)
+    save_combined = out_cfg.get("save_combined", True)
 
+    # pro Variante separaten Lauf + Datei
     for profile, risk_perc in VARIANTS:
+        variant_trades: List[dict] = []
         for sym in symbols:
             bars = load_bars_for_symbol("data", sym)
             if not bars:
                 print(f"⚠️ Keine Daten für {sym} gefunden.")
                 continue
+            trades = backtest_variant(bars, sym, profile=profile, risk_perc=risk_perc)
+            variant_trades.extend(trades)
 
-            trades = backtest_variant(
-                bars,
-                sym,
-                profile=profile,
-                risk_perc=risk_perc,
-            )
-            all_trades.extend(trades)
+        all_trades.extend(variant_trades)
 
-    if CFG_RUN.get("output", {}).get("write_csv", True):
-        from ilog.csvlog import write_trades as _write_trades_csv
+        # Dateiname z.B. trades_SAFE_005bp.csv
+        if write_csv:
+            fname = f"trades_{profile}_{int(risk_perc * 1000):03d}bp.csv"
+            fpath = os.path.join(out_dir, fname)
+            write_trades(variant_trades, fpath, use_risk_fields=True)
 
-        out_file = os.path.join(out_dir, CFG_RUN.get("output", {}).get("file", "trades.csv"))
-        _write_trades_csv(all_trades, out_file)
-        print(f"Fertig. Trades geschrieben: {len(all_trades)} → {out_file}")
+    # kombinierte Datei (optional)
+    if write_csv and save_combined:
+        combined_path = os.path.join(out_dir, "trades_all_variants.csv")
+        write_trades(all_trades, combined_path, use_risk_fields=True)
 
     return all_trades
 
