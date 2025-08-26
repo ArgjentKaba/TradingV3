@@ -13,6 +13,27 @@ from exec.paper import PaperExec
 from strategy.filters import FilterThresholds, RollingStats, divergence_ok, ffill_step, passes_gate
 from strategy.governor import Governor
 
+
+# ---- Test/Backwards-compat shims -------------------------------------------
+# 1) Exponiere write_trades auf Modulebene (Tests patchen app.write_trades)
+def write_trades(trades, path, use_risk_fields: bool = True):
+    from ilog.csvlog import write_trades as _write_trades_csv
+
+    return _write_trades_csv(trades, path, use_risk_fields)
+
+
+# 2) Falls RollingStats keine Instanzmethode ffill_step hat, reiche die Funktionsvariante durch.
+try:
+    if not hasattr(RollingStats, "ffill_step"):
+
+        def _rs_ffill_step(self):
+            ffill_step(self)
+
+        setattr(RollingStats, "ffill_step", _rs_ffill_step)
+except Exception:
+    pass
+# ---------------------------------------------------------------------------
+
 CFG_FILTERS = load_config("config/filters.yaml", default={})
 CFG_THRESH = load_config("config/thresholds.yaml", default={})
 CFG_RUN = load_config("config/runtime.yaml", default={})
@@ -165,7 +186,7 @@ def backtest_variant(bars: List[Bar], symbol: str, profile: str, risk_perc: floa
     locked_after_big_gap = False
 
     for i in range(1, len(bars)):
-        b_prev, b = bars[i - 1], bars[i]
+        b_prev, b = bars[i - 1], b = bars[i - 1], bars[i]
         if cutoff and b.t < cutoff:
             rs.update(b.high, b.low, b.close, b.volume)
             continue
