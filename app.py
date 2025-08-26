@@ -1,9 +1,8 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import csv
 import os
 import re
-from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
@@ -11,9 +10,29 @@ from core.config_util import load_config
 from core.events import Bar
 from core.timeutil import in_session
 from exec.paper import PaperExec
-from ilog.csvlog import write_trades
-from strategy.filters import FilterThresholds, RollingStats, divergence_ok, passes_gate
+from strategy.filters import FilterThresholds, RollingStats, divergence_ok, ffill_step, passes_gate
 from strategy.governor import Governor
+
+
+# ---- Test/Backwards-compat shims -------------------------------------------
+# 1) Exponiere write_trades auf Modulebene (Tests patchen app.write_trades)
+def write_trades(trades, path, use_risk_fields: bool = True):
+    from ilog.csvlog import write_trades as _write_trades_csv
+
+    return _write_trades_csv(trades, path, use_risk_fields)
+
+
+# 2) Falls RollingStats keine Instanzmethode ffill_step hat, reiche die Funktionsvariante durch.
+try:
+    if not hasattr(RollingStats, "ffill_step"):
+
+        def _rs_ffill_step(self):
+            ffill_step(self)
+
+        setattr(RollingStats, "ffill_step", _rs_ffill_step)
+except Exception:
+    pass
+# ---------------------------------------------------------------------------
 
 CFG_FILTERS = load_config("config/filters.yaml", default={})
 CFG_THRESH = load_config("config/thresholds.yaml", default={})
@@ -167,24 +186,22 @@ def backtest_variant(bars: List[Bar], symbol: str, profile: str, risk_perc: floa
     locked_after_big_gap = False
 
     for i in range(1, len(bars)):
+        # BUGFIX: korrekte Zuordnung
         b_prev, b = bars[i - 1], bars[i]
         if cutoff and b.t < cutoff:
             rs.update(b.high, b.low, b.close, b.volume)
             continue
 
+        # gap handling with ffill for small gaps
+        delta_min = (b.t - b_prev.t).total_seconds() / 60.0
 
-# gap handling with ffill for small gaps
-delta_min = (b.t - b_prev.t).total_seconds() / 60.0
-
-# ≤ 2-minute gaps: forward-fill indicator state (no new bars, no entries)
-if 1.0 < delta_min <= 2.0:
-    missing = max(0, int(round(delta_min)) - 1)  # e.g., 2.0 -> 1 ffill step
-    for _ in range(missing):
-        rs.ffill_step()
+        # ≤ 2-minute gaps: forward-fill indicator state (no new bars, no entries)
+        if 1.0 < delta_min <= 2.0:
+            missing = max(0, int(round(delta_min)) - 1)
+            for _ in range(missing):
+                ffill_step(rs)
 
         # > 2-minute gaps: lock entries until 5 clean 1m bars
-        # gap handling
-
         delta_min = (b.t - b_prev.t).total_seconds() / 60.0
         if delta_min > 2.0:
             locked_after_big_gap = True
@@ -207,12 +224,11 @@ if 1.0 < delta_min <= 2.0:
 
         if not in_pos:
             if locked_after_big_gap:
-                # no entries during gap recovery
                 continue
             side = "LONG" if mom >= 0 else "SHORT"
             gate = passes_gate(side, abs(mom), vol_z, atr_pct, oi5, th) and divergence_ok(mom, oi5, th)
             if side == "SHORT":
-                gate = False  # v2 long-only; shorts in v3
+                gate = False
             if gate and gov.can_trade(b.t, symbol):
                 in_pos = True
                 entry_price = b.close
@@ -228,7 +244,6 @@ if 1.0 < delta_min <= 2.0:
             tp1 = entry_price * (1 + EXIT["tp1_pct"] / 100.0)
             tp2 = entry_price * (1 + EXIT["tp2_pct"] / 100.0)
 
-            # BEFORE_TP1: SL before TP1
             if pos_state == "ENTRY" and b.low <= sl:
                 execu.execute_trade("LONG", entry_price, sl, entry_time, b.t, "ExitA_SL", time_limit_applied=False)
                 gov.register_exit(b.t, symbol)
@@ -244,7 +259,6 @@ if 1.0 < delta_min <= 2.0:
                 )
                 pos_state = "AFTER_TP1"
 
-            # AFTER_TP1: BE before TP2
             if pos_state == "AFTER_TP1" and b.low <= entry_price:
                 execu.execute_trade(
                     "LONG", entry_price, entry_price, entry_time, b.t, "ExitB_StopBE (67%)", time_limit_applied=False
@@ -267,7 +281,6 @@ if 1.0 < delta_min <= 2.0:
                 be_armed = False
                 continue
 
-            # TIME EXIT (only if no TP1/SL yet)
             if pos_state == "ENTRY":
                 max_hold = timedelta(minutes=int(TIME_EXIT.get("max_hold_minutes", 90)))
                 profit_buffer = float(TIME_EXIT.get("profit_buffer_pct", 0.10))
@@ -323,27 +336,39 @@ if 1.0 < delta_min <= 2.0:
 
 def main():
     symbols = load_symbols(CFG_RUN.get("universe_file", "symbols.txt"))
-    combined = []
-    out_dir = CFG_RUN.get("output", {}).get("dir", "runs")
+    out_cfg = CFG_RUN.get("output", {}) or {}
+    out_dir = out_cfg.get("dir", "runs")
     os.makedirs(out_dir, exist_ok=True)
+
+    all_trades: List[dict] = []
+    write_csv = out_cfg.get("write_csv", True)
+    save_combined = out_cfg.get("save_combined", True)
+
+    # pro Variante separaten Lauf + Datei
     for profile, risk_perc in VARIANTS:
-        all_trades = []
+        variant_trades: List[dict] = []
         for sym in symbols:
             bars = load_bars_for_symbol("data", sym)
             if not bars:
                 print(f"⚠️ Keine Daten für {sym} gefunden.")
                 continue
             trades = backtest_variant(bars, sym, profile=profile, risk_perc=risk_perc)
-            all_trades.extend(trades)
+            variant_trades.extend(trades)
 
-        out_name = os.path.join(out_dir, f"trades_{profile}_{int(risk_perc*1000):03d}bp.csv")
-        write_trades(all_trades, out_name, use_risk_fields=True)
-        print(f"Fertig. {profile} @ {risk_perc*100:.2f}% Risiko → {len(all_trades)} Trades → {out_name}")
-        combined.extend(all_trades)
+        all_trades.extend(variant_trades)
 
-    if CFG_RUN.get("output", {}).get("save_combined", True):
-        write_trades(combined, os.path.join(out_dir, "trades_all_variants.csv"), use_risk_fields=True)
-        print(f"Gesamt: {len(combined)} Trades → {os.path.join(out_dir, 'trades_all_variants.csv')}")
+        # Dateiname z.B. trades_SAFE_005bp.csv
+        if write_csv:
+            fname = f"trades_{profile}_{int(risk_perc * 1000):03d}bp.csv"
+            fpath = os.path.join(out_dir, fname)
+            write_trades(variant_trades, fpath, use_risk_fields=True)
+
+    # kombinierte Datei (optional)
+    if write_csv and save_combined:
+        combined_path = os.path.join(out_dir, "trades_all_variants.csv")
+        write_trades(all_trades, combined_path, use_risk_fields=True)
+
+    return all_trades
 
 
 if __name__ == "__main__":

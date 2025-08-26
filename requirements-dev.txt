@@ -6,3 +6,4 @@ flake8==7.1.1
 pytest==8.3.3
 pytest-cov
 pandas
+pytest-cov>=4.1.0

@@ -37,8 +37,20 @@ jobs:
       - name: Lint (flake8)
         run: flake8 --config .flake8
 
-      - name: Tests (pytest)
-        run: pytest -q
+      - name: Tests (pytest + coverage)
+        run: |
+          pytest -q \
+            --cov=app --cov=core --cov=exec --cov=ilog --cov=strategy \
+            --cov-report=term-missing:skip-covered \
+            --cov-report=xml \
+            --cov-fail-under=70
+
+      - name: Upload coverage.xml
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
 
       - name: Smoke test
         run: python -c "print('Smoke test OK')"
